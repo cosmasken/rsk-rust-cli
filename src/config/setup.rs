@@ -55,7 +55,7 @@ pub fn run_setup_wizard() -> Result<()> {
     println!("\n{}", style("✅ Setup complete!").bold().green());
     println!("\nYou can now use the wallet. For more information, visit:");
     println!("{}", style(DOCS_URL).blue().underlined());
-    println!("\nRun `rootstock-wallet --help` to see available commands.");
+    println!("\nRun `rsk-rust-cli --help` to see available commands.");
 
     Ok(())
 }

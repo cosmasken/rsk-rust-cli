@@ -180,7 +180,7 @@ Add, list, and delete contacts from your address book.
 
 #### Wallet Issues
 
-- Confirm wallet file exists at `~/.local/share/rootstock-wallet/`
+- Confirm wallet file exists at `~/.local/share/rsk-rust-cli/`
 - Check file permissions if access is denied
 - Ensure you're using the correct network (mainnet/testnet)
 

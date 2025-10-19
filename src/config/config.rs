@@ -120,7 +120,7 @@ impl ConfigManager {
     pub fn new() -> Result<Self> {
         let config_dir = dirs::config_dir()
             .context("Could not find config directory")?
-            .join("rootstock-wallet");
+            .join("rsk-rust-cli");
 
         std::fs::create_dir_all(&config_dir)?;
 
@@ -200,7 +200,7 @@ impl ConfigManager {
 
         // Clear wallet data directory
         if let Some(data_dir) = dirs::data_local_dir() {
-            let wallet_data_dir = data_dir.join("rootstock-wallet");
+            let wallet_data_dir = data_dir.join("rsk-rust-cli");
             if wallet_data_dir.exists() {
                 // Remove all files in the wallet data directory
                 for entry in fs::read_dir(&wallet_data_dir)? {

@@ -69,7 +69,7 @@ impl Helper {
         };
 
         println!(
-            "[rootstock-wallet] Connected to {} at {} ({})",
+            "[rsk-rust-cli] Connected to {} at {} ({})",
             config.network.name,
             config.network.rpc_url,
             rpc_type.dimmed()

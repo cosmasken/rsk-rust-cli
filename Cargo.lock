@@ -4085,7 +4085,18 @@ dependencies = [
 ]
 
 [[package]]
-name = "rootstock-wallet"
+name = "rpassword"
+version = "7.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "66d4c8b64f049c6721ec8ccec37ddfc3d641c4a7fca57e8f2a89de509c73df39"
+dependencies = [
+ "libc",
+ "rtoolbox",
+ "windows-sys 0.59.0",
+]
+
+[[package]]
+name = "rsk-rust-cli"
 version = "0.1.0"
 dependencies = [
  "aes",
@@ -4136,17 +4147,6 @@ dependencies = [
  "typenum",
  "url",
  "zeroize",
-]
-
-[[package]]
-name = "rpassword"
-version = "7.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "66d4c8b64f049c6721ec8ccec37ddfc3d641c4a7fca57e8f2a89de509c73df39"
-dependencies = [
- "libc",
- "rtoolbox",
- "windows-sys 0.59.0",
 ]
 
 [[package]]

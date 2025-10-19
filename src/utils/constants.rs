@@ -3,12 +3,12 @@ use std::path::PathBuf;
 pub fn wallet_file_path() -> PathBuf {
     let dir = dirs::data_local_dir()
         .expect("Failed to get data directory")
-        .join("rootstock-wallet");
+        .join("rsk-rust-cli");
 
     // Ensure the directory exists
     std::fs::create_dir_all(&dir).expect("Failed to create wallet directory");
 
-    dir.join("rootstock-wallet.json")
+    dir.join("rsk-rust-cli.json")
 }
 
 pub const METHOD_TYPES: &str = "read";
