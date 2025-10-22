@@ -100,30 +100,30 @@ cargo run
 
 ### First Time Setup
 
-[![First Time Setup](https://asciinema.org/a/V8Qf1AboSZu08l12KJFxTfyeV.svg)](https://asciinema.org/a/V8Qf1AboSZu08l12KJFxTfyeV)
+[![First Time Setup](https://asciinema.org/a/pMi051odKMitsDiPQdvOJvGBN.svg)]( https://asciinema.org/a/pMi051odKMitsDiPQdvOJvGBN)
 
 ### Importing Existing Wallet
 
-[![Importing Existing Wallet](https://asciinema.org/a/cVrvEOP4LvJQLvTitxcayRBFt.svg)](https://asciinema.org/a/cVrvEOP4LvJQLvTitxcayRBFt)
+[![Importing Existing Wallet](https://asciinema.org/a/jxZC0yjhsOLJj9CG7EkOVi02L.svg)](https://asciinema.org/a/jxZC0yjhsOLJj9CG7EkOVi02L)
 
 ### Wallet Creation
 
-[![Wallet Creation](https://asciinema.org/a/Lj7YVm8idPbAEpHYPfjFuTfns.svg)](https://asciinema.org/a/Lj7YVm8idPbAEpHYPfjFuTfns)
+[![Wallet Creation](https://asciinema.org/a/5X9rNeRXAD6jmx0eU4a8IiCNC.svg)](https://asciinema.org/a/5X9rNeRXAD6jmx0eU4a8IiCNC)
 
 ### List Wallets & Switch Wallets
 
-[![List Wallets](https://asciinema.org/a/HUpONPUC4OgQKFyStNm5KwaqT.svg)](https://asciinema.org/a/HUpONPUC4OgQKFyStNm5KwaqT)
+[![List Wallets](https://asciinema.org/a/ZXPerufSJaQBoJxgc4DuBSl2L.svg)](https://asciinema.org/a/ZXPerufSJaQBoJxgc4DuBSl2L)
 
 ### Delete Wallet & Rename Wallet
 
-[![Delete Wallet](https://asciinema.org/a/cqjxdJjfaY1wqvO4upgRUMKDG.svg)](https://asciinema.org/a/cqjxdJjfaY1wqvO4upgRUMKDG)
+[![Delete Wallet](https://asciinema.org/a/CWenfPkYsQ8IFXfC5kCmaGife.svg)](https://asciinema.org/a/CWenfPkYsQ8IFXfC5kCmaGife)
 
 ### Check Balance of RBTC and ERC-20 Tokens
 
 Check your RBTC and ERC-20 token balances (e.g., RIF).
 
 [View example transaction on explorer](https://explorer.testnet.rootstock.io/tx/0x0293c59578303f3dc88daeda6c8564fd39b612dd85d7a1e025a37e611dc5b900)
-[![Check Balance](https://asciinema.org/a/rqlxYIWZ2Gh1Pn5sEFZZFK5xz.svg)](https://asciinema.org/a/rqlxYIWZ2Gh1Pn5sEFZZFK5xz
+[![Check Balance](https://asciinema.org/a/wG7nH2CiZdYCLCVQKNMWA7hfb.svg)](https://asciinema.org/a/wG7nH2CiZdYCLCVQKNMWA7hfb
 )
 
 ### Send Funds
