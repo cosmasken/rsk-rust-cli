@@ -87,7 +87,7 @@ impl WalletCommand {
             WalletData::new()
         };
         let _ = wallet_data.add_wallet(wallet.clone());
-        fs::write(&wallet_file, serde_json::to_string_pretty(&wallet_data)?)?;
+        crate::utils::secure_fs::write_secure(&wallet_file, &serde_json::to_string_pretty(&wallet_data)?)?;
         println!("{}", "🎉 Wallet created successfully".green());
         println!("Address: {:?}", wallet.address());
         println!("Wallet saved at: {}", wallet_file.display());
@@ -111,7 +111,7 @@ impl WalletCommand {
             WalletData::new()
         };
         let _ = wallet_data.add_wallet(wallet);
-        fs::write(&wallet_file, serde_json::to_string_pretty(&wallet_data)?)?;
+        crate::utils::secure_fs::write_secure(&wallet_file, &serde_json::to_string_pretty(&wallet_data)?)?;
         println!("{}", "✅ Wallet imported successfully".green());
         println!("Wallet saved at: {}", wallet_file.display());
         Ok(())
@@ -154,7 +154,7 @@ impl WalletCommand {
             .ok_or_else(|| anyhow!("Wallet '{}' not found", name))?
             .address;
         let _ = wallet_data.switch_wallet(&format!("0x{:x}", wallet_address));
-        fs::write(&wallet_file, serde_json::to_string_pretty(&wallet_data)?)?;
+        crate::utils::secure_fs::write_secure(&wallet_file, &serde_json::to_string_pretty(&wallet_data)?)?;
         println!("{}", format!("✅ Switched to wallet: {}", name).green());
         println!("Address: 0x{:x}", wallet_address);
         Ok(())
@@ -182,7 +182,7 @@ impl WalletCommand {
         } else {
             return Err(anyhow!("Failed to rename wallet '{}'", old_name));
         }
-        fs::write(&wallet_file, serde_json::to_string_pretty(&wallet_data)?)?;
+        crate::utils::secure_fs::write_secure(&wallet_file, &serde_json::to_string_pretty(&wallet_data)?)?;
         println!(
             "{}",
             format!("✅ Wallet renamed from '{}' to '{}'", old_name, new_name).green()
@@ -207,20 +207,25 @@ impl WalletCommand {
         let wallet = wallet_data
             .get_wallet_by_name(name)
             .ok_or_else(|| anyhow!("Wallet '{}' not found", name))?;
-        let filename = path
-            .file_name()
-            .and_then(|f| f.to_str())
-            .ok_or_else(|| anyhow!("Invalid filename in path: {}", path.display()))?;
-        let backup_path = PathBuf::from(format!("./{}", filename));
-        fs::write(&backup_path, serde_json::to_string_pretty(&wallet)?)?;
-        if !backup_path.exists() {
-            return Err(anyhow!(
-                "Backup file was not created at: {}",
-                backup_path.display()
-            ));
+        
+        // Create parent directories if they don't exist
+        if let Some(parent) = path.parent() {
+            fs::create_dir_all(parent)?;
         }
+        
+        // Write backup file with secure permissions (0o600)
+        fs::write(path, serde_json::to_string_pretty(&wallet)?)?;
+        
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let mut perms = fs::metadata(path)?.permissions();
+            perms.set_mode(0o600);
+            fs::set_permissions(path, perms)?;
+        }
+        
         println!("{}", "✅ Backup created successfully".green());
-        println!("Backup saved at: {}", backup_path.display());
+        println!("Backup saved at: {}", path.display());
         Ok(())
     }
 
@@ -238,7 +243,7 @@ impl WalletCommand {
             ));
         }
         let _ = wallet_data.remove_wallet(&address);
-        fs::write(&wallet_file, serde_json::to_string_pretty(&wallet_data)?)?;
+        crate::utils::secure_fs::write_secure(&wallet_file, &serde_json::to_string_pretty(&wallet_data)?)?;
         println!("{}", format!("✅ Deleted wallet: {}", name).green());
         println!("Address: {}", address);
         Ok(())

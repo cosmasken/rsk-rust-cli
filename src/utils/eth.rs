@@ -41,7 +41,7 @@ impl EthClient {
 
         let _api_key = if let Some(key) = cli_api_key {
             wallet_data.api_key = Some(key.clone());
-            fs::write(&wallet_file, serde_json::to_string_pretty(&wallet_data)?)?;
+            crate::utils::secure_fs::write_secure(&wallet_file, &serde_json::to_string_pretty(&wallet_data)?)?;
             Some(key)
         } else {
             wallet_data.api_key.clone()

@@ -185,9 +185,7 @@ pub async fn send_funds() -> Result<()> {
     // Execute the transfer command
     let cmd = TransferCommand {
         address: to,
-        value: amount
-            .parse::<f64>()
-            .map_err(|_| anyhow::anyhow!("Invalid amount format"))?,
+        value: amount,
         token: if token_address == "0x0000000000000000000000000000000000000000" {
             None
         } else {

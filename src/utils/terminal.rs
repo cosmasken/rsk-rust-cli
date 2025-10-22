@@ -1,15 +1,10 @@
 use std::io::{self, Write};
-use std::process::Command;
 
-/// Clears the terminal screen in a cross-platform way
+/// Clears the terminal screen in a cross-platform way using secure method
 pub fn clear_screen() {
-    if cfg!(target_os = "windows") {
-        Command::new("cmd").args(["/c", "cls"]).status().unwrap();
-    } else {
-        // For Unix-like systems
-        Command::new("clear").status().unwrap();
-    }
-
+    // Use clearscreen crate which doesn't rely on PATH
+    clearscreen::clear().ok();
+    
     // Ensure the screen is cleared before continuing
     io::stdout().flush().unwrap();
 }

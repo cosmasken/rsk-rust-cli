@@ -83,10 +83,10 @@ impl HistoryCommand {
         let mut stored_api_key: Option<String> = None;
 
         // If export is requested, ensure we have a filename
-        if let Some(filename) = &self.export_csv
-            && !filename.ends_with(".csv")
-        {
-            return Err(anyhow::anyhow!("Export filename must end with .csv"));
+        if let Some(filename) = &self.export_csv {
+            if !filename.ends_with(".csv") {
+                return Err(anyhow::anyhow!("Export filename must end with .csv"));
+            }
         }
 
         // Try to load API key from wallet file
@@ -100,7 +100,7 @@ impl HistoryCommand {
                 // Persist CLI key if supplied and not yet saved
                 if stored_api_key.is_none() && self.api_key.is_some() {
                     val["alchemyApiKey"] = serde_json::Value::String(self.api_key.clone().unwrap());
-                    fs::write(&wallet_file, serde_json::to_string_pretty(&val)?)?;
+                    crate::utils::secure_fs::write_secure(&wallet_file, &serde_json::to_string_pretty(&val)?)?;
                     stored_api_key = self.api_key.clone();
                     println!("{}", "Saved Alchemy API key ✅".green());
                 }

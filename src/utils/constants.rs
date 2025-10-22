@@ -1,12 +1,13 @@
 use std::path::PathBuf;
+use crate::utils::secure_fs;
 
 pub fn wallet_file_path() -> PathBuf {
     let dir = dirs::data_local_dir()
         .expect("Failed to get data directory")
         .join("rsk-rust-cli");
 
-    // Ensure the directory exists
-    std::fs::create_dir_all(&dir).expect("Failed to create wallet directory");
+    // Ensure the directory exists with secure permissions
+    secure_fs::create_dir_secure(&dir).expect("Failed to create wallet directory");
 
     dir.join("rsk-rust-cli.json")
 }

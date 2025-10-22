@@ -13,6 +13,7 @@ use alloy::{
 };
 use serde::Deserialize;
 use std::{fs, sync::Arc};
+use zeroize::Zeroize;
 
 #[derive(Debug, Clone)]
 struct Transfer {
@@ -63,10 +64,13 @@ pub async fn bulk_transfer() -> Result<()> {
     };
 
     // Prompt for password to decrypt the private key
-    let password = rpassword::prompt_password("Enter password for the wallet: ")?;
+    let mut password = rpassword::prompt_password("Enter password for the wallet: ")?;
 
     // Decrypt the private key
-    let private_key = current_wallet.decrypt_private_key(&password)?;
+    let mut private_key = current_wallet.decrypt_private_key(&password)?;
+    
+    // Zeroize password after use
+    password.zeroize();
 
     // Create a wallet
     let wallet = private_key
@@ -252,10 +256,13 @@ pub async fn bulk_transfer() -> Result<()> {
     }
 
     println!("\n📊 Transaction Summary:");
-    println!("====================");
+    println! ("====================" );
     println!("Total transactions: {}", successful + failed);
     println!("✅ Successful: {}", successful);
     println!("❌ Failed: {}", failed);
+
+    // Zeroize sensitive data
+    private_key.zeroize();
 
     Ok(())
 }

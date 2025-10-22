@@ -1,6 +1,27 @@
 use crate::commands::wallet::{WalletAction, WalletCommand};
 use anyhow::Result;
 use console::style;
+use zeroize::Zeroize;
+
+/// Validates password strength
+fn validate_password(password: &str) -> Result<inquire::validator::Validation, Box<dyn std::error::Error + Send + Sync>> {
+    if password.len() < 8 {
+        return Ok(inquire::validator::Validation::Invalid("Password must be at least 8 characters long".into()));
+    }
+    if !password.chars().any(|c| c.is_ascii_lowercase()) {
+        return Ok(inquire::validator::Validation::Invalid("Password must contain at least one lowercase letter".into()));
+    }
+    if !password.chars().any(|c| c.is_ascii_uppercase()) {
+        return Ok(inquire::validator::Validation::Invalid("Password must contain at least one uppercase letter".into()));
+    }
+    if !password.chars().any(|c| c.is_ascii_digit()) {
+        return Ok(inquire::validator::Validation::Invalid("Password must contain at least one number".into()));
+    }
+    if !password.chars().any(|c| c.is_ascii_punctuation()) {
+        return Ok(inquire::validator::Validation::Invalid("Password must contain at least one symbol (!@#$%^&* etc.)".into()));
+    }
+    Ok(inquire::validator::Validation::Valid)
+}
 
 /// Displays the wallet management menu
 pub async fn wallet_menu() -> Result<()> {
@@ -80,6 +101,7 @@ pub async fn create_wallet_with_name(name: &str) -> Result<()> {
         .with_custom_confirmation_error_message("The passwords don't match.")
         .with_custom_confirmation_message("Please confirm your password:")
         .with_formatter(&|_| String::from("✓ Password set"))
+        .with_validator(validate_password)
         .prompt()?;
 
     println!(
@@ -87,15 +109,20 @@ pub async fn create_wallet_with_name(name: &str) -> Result<()> {
         style("⏳ Creating your wallet. This may take a few seconds...").dim()
     );
 
+    let mut password_copy = password.clone();
     let cmd = WalletCommand {
         action: WalletAction::Create {
             name: name.to_string(),
-            password: password.clone(),
+            password: password_copy.clone(),
         },
     };
 
-    cmd.execute().await?;
-    Ok(())
+    let result = cmd.execute().await;
+    
+    // Zeroize sensitive data
+    password_copy.zeroize();
+    
+    result
 }
 
 async fn import_wallet() -> Result<()> {
@@ -135,6 +162,7 @@ async fn import_wallet() -> Result<()> {
         .with_custom_confirmation_error_message("The passwords don't match.")
         .with_custom_confirmation_message("Please confirm your password:")
         .with_formatter(&|_| String::from("✓ Password set"))
+        .with_validator(validate_password)
         .prompt()?;
 
     println!(
@@ -142,15 +170,23 @@ async fn import_wallet() -> Result<()> {
         style("⏳ Importing your wallet. This may take a few seconds...").dim()
     );
 
+    let mut private_key_copy = private_key.clone();
+    let mut password_copy = password.clone();
     let cmd = WalletCommand {
         action: WalletAction::Import {
-            private_key: private_key.clone(),
+            private_key: private_key_copy.clone(),
             name: name.clone(),
-            password: password.clone(),
+            password: password_copy.clone(),
         },
     };
 
-    cmd.execute().await?;
+    let result = cmd.execute().await;
+    
+    // Zeroize sensitive data
+    private_key_copy.zeroize();
+    password_copy.zeroize();
+    
+    result?;
 
     println!("\n{}", style("✅ Wallet imported successfully!").green());
     Ok(())
