@@ -9,10 +9,11 @@ use alloy::{
     primitives::{Address, U256},
     providers::{Provider, ProviderBuilder},
     signers::local::PrivateKeySigner,
-    network::TransactionBuilder,
+    network::{TransactionBuilder, EthereumWallet},
 };
 use serde::Deserialize;
 use std::{fs, sync::Arc};
+use zeroize::Zeroize;
 
 #[derive(Debug, Clone)]
 struct Transfer {
@@ -53,7 +54,7 @@ pub async fn bulk_transfer() -> Result<()> {
     let network_config = config.default_network.get_config();
 
     // Get the chain ID based on the network
-    let chain_id = match config.default_network {
+    let _chain_id = match config.default_network {
         Network::RootStockMainnet => 30,
         Network::RootStockTestnet => 31,
         Network::Mainnet => 30,
@@ -63,17 +64,20 @@ pub async fn bulk_transfer() -> Result<()> {
     };
 
     // Prompt for password to decrypt the private key
-    let password = rpassword::prompt_password("Enter password for the wallet: ")?;
+    let mut password = rpassword::prompt_password("Enter password for the wallet: ")?;
 
     // Decrypt the private key
-    let private_key = current_wallet.decrypt_private_key(&password)?;
+    let mut private_key = current_wallet.decrypt_private_key(&password)?;
+    
+    // Zeroize password after use
+    password.zeroize();
 
     // Create a wallet
     let wallet = private_key
         .parse::<PrivateKeySigner>()
         .map_err(|e| anyhow!("Failed to parse private key: {}", e))?;
 
-    // Create a provider with the network RPC URL
+    // Create a standard provider
     let provider = ProviderBuilder::new()
         .on_http(network_config.rpc_url.parse()?);
 
@@ -202,6 +206,9 @@ pub async fn bulk_transfer() -> Result<()> {
         return Ok(());
     }
 
+    // Get starting nonce
+    let mut nonce = client.get_transaction_count(wallet.address()).await?;
+
     // Send transactions
     println!("\n🚀 Sending transactions...");
 
@@ -215,34 +222,45 @@ pub async fn bulk_transfer() -> Result<()> {
         let tx = TransactionRequest::default()
             .with_to(transfer.to)
             .with_value(transfer.value)
+            .with_nonce(nonce)
             .with_gas_limit(gas_per_tx.try_into().unwrap_or(0u64))
             .with_gas_price(gas_price.try_into().unwrap_or(0u128));
 
-        match client.send_transaction(tx).await {
-            Ok(pending_tx) => {
-                let tx_hash = pending_tx.tx_hash();
-                match client.get_transaction_receipt(*tx_hash).await {
-                    Ok(Some(receipt)) => {
-                        if receipt.status() {
-                            println!("✅ Success! Tx: {:?}", receipt.transaction_hash);
-                            successful += 1;
-                        } else {
-                            println!("❌ Failed! Tx: {:?}", receipt.transaction_hash);
-                            failed += 1;
+        // Build and sign transaction
+        match tx.build(&EthereumWallet::from(wallet.clone())).await {
+            Ok(tx_envelope) => {
+                match client.send_tx_envelope(tx_envelope).await {
+                    Ok(pending_tx) => {
+                        let tx_hash = *pending_tx.tx_hash();
+                        nonce += 1; // Increment nonce for next transaction
+                        match client.get_transaction_receipt(tx_hash).await {
+                            Ok(Some(receipt)) => {
+                                if receipt.status() {
+                                    println!("✅ Success! Tx: {:?}", receipt.transaction_hash);
+                                    successful += 1;
+                                } else {
+                                    println!("❌ Failed! Tx: {:?}", receipt.transaction_hash);
+                                    failed += 1;
+                                }
+                            }
+                            Ok(None) => {
+                                println!("❌ Transaction was dropped from the mempool");
+                                failed += 1;
+                            }
+                            Err(e) => {
+                                println!("❌ Error getting receipt: {}", e);
+                                failed += 1;
+                            }
                         }
                     }
-                    Ok(None) => {
-                        println!("❌ Transaction was dropped from the mempool");
-                        failed += 1;
-                    }
                     Err(e) => {
-                        println!("❌ Error: {}", e);
+                        println!("❌ Failed to send transaction: {}", e);
                         failed += 1;
                     }
                 }
             }
             Err(e) => {
-                println!("❌ Failed to send transaction: {}", e);
+                println!("❌ Failed to build/sign transaction: {}", e);
                 failed += 1;
             }
         }
@@ -252,10 +270,13 @@ pub async fn bulk_transfer() -> Result<()> {
     }
 
     println!("\n📊 Transaction Summary:");
-    println!("====================");
+    println! ("====================" );
     println!("Total transactions: {}", successful + failed);
     println!("✅ Successful: {}", successful);
     println!("❌ Failed: {}", failed);
+
+    // Zeroize sensitive data
+    private_key.zeroize();
 
     Ok(())
 }

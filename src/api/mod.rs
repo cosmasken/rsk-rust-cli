@@ -23,11 +23,14 @@ impl fmt::Display for ApiProvider {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, zeroize::Zeroize)]
 pub struct ApiKey {
     pub key: String,
+    #[zeroize(skip)]
     pub network: String, // "mainnet", "testnet", etc.
+    #[zeroize(skip)]
     pub provider: ApiProvider,
+    #[zeroize(skip)]
     pub name: Option<String>,
 }
 

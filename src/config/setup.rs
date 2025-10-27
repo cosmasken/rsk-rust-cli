@@ -1,6 +1,6 @@
 use anyhow::Result;
 use console::style;
-use dialoguer::{Confirm, Input, Select, theme::ColorfulTheme};
+use dialoguer::{Confirm, Password, Select, theme::ColorfulTheme};
 
 use crate::config::{Config, ConfigManager, DOCS_URL, RSK_RPC_DOCS_URL};
 use crate::types::network::Network;
@@ -99,9 +99,9 @@ fn setup_api_keys(config: &mut Config, network: Network) -> Result<()> {
         println!("\nGet your RSK RPC API key from:");
         println!("{}", style(RSK_RPC_DOCS_URL).blue().underlined());
 
-        let rsk_key: String = Input::with_theme(&ColorfulTheme::default())
+        let rsk_key: String = Password::with_theme(&ColorfulTheme::default())
             .with_prompt(format!("Enter your RSK RPC {} API key", key_type))
-            .interact_text()?;
+            .interact()?;
 
         // Add RSK RPC API key to config
         use crate::api::{ApiKey, ApiProvider};
@@ -133,9 +133,9 @@ fn setup_api_keys(config: &mut Config, network: Network) -> Result<()> {
         };
         println!("{}", style(alchemy_url).blue().underlined());
 
-        let alchemy_key: String = Input::with_theme(&ColorfulTheme::default())
+        let alchemy_key: String = Password::with_theme(&ColorfulTheme::default())
             .with_prompt(format!("Enter your Alchemy {} API key", key_type))
-            .interact_text()?;
+            .interact()?;
 
         // Add Alchemy API key to config
         use crate::api::{ApiKey, ApiProvider};

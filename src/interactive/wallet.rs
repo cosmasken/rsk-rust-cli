@@ -1,6 +1,27 @@
 use crate::commands::wallet::{WalletAction, WalletCommand};
 use anyhow::Result;
 use console::style;
+use zeroize::Zeroize;
+
+/// Validates password strength
+fn validate_password(password: &str) -> Result<inquire::validator::Validation, Box<dyn std::error::Error + Send + Sync>> {
+    if password.len() < 8 {
+        return Ok(inquire::validator::Validation::Invalid("Password must be at least 8 characters long".into()));
+    }
+    if !password.chars().any(|c| c.is_ascii_lowercase()) {
+        return Ok(inquire::validator::Validation::Invalid("Password must contain at least one lowercase letter".into()));
+    }
+    if !password.chars().any(|c| c.is_ascii_uppercase()) {
+        return Ok(inquire::validator::Validation::Invalid("Password must contain at least one uppercase letter".into()));
+    }
+    if !password.chars().any(|c| c.is_ascii_digit()) {
+        return Ok(inquire::validator::Validation::Invalid("Password must contain at least one number".into()));
+    }
+    if !password.chars().any(|c| c.is_ascii_punctuation()) {
+        return Ok(inquire::validator::Validation::Invalid("Password must contain at least one symbol (!@#$%^&* etc.)".into()));
+    }
+    Ok(inquire::validator::Validation::Valid)
+}
 
 /// Displays the wallet management menu
 pub async fn wallet_menu() -> Result<()> {
@@ -11,6 +32,7 @@ pub async fn wallet_menu() -> Result<()> {
             String::from("📋 List Wallets"),
             String::from("🔄 Switch Wallet"),
             String::from("✏️ Rename Wallet"),
+            String::from("🔑 Export Private Key"),
             String::from("💾 Backup Wallet"),
             String::from("🗑️ Delete Wallet"),
             String::from("🏠 Back to Main Menu"),
@@ -26,6 +48,7 @@ pub async fn wallet_menu() -> Result<()> {
             "📋 List Wallets" => list_wallets().await,
             "🔄 Switch Wallet" => switch_wallet().await,
             "✏️ Rename Wallet" => rename_wallet().await,
+            "🔑 Export Private Key" => export_private_key().await,
             "💾 Backup Wallet" => backup_wallet().await,
             "🗑️ Delete Wallet" => delete_wallet().await,
             _ => break,
@@ -80,6 +103,7 @@ pub async fn create_wallet_with_name(name: &str) -> Result<()> {
         .with_custom_confirmation_error_message("The passwords don't match.")
         .with_custom_confirmation_message("Please confirm your password:")
         .with_formatter(&|_| String::from("✓ Password set"))
+        .with_validator(validate_password)
         .prompt()?;
 
     println!(
@@ -87,15 +111,20 @@ pub async fn create_wallet_with_name(name: &str) -> Result<()> {
         style("⏳ Creating your wallet. This may take a few seconds...").dim()
     );
 
+    let mut password_copy = password.clone();
     let cmd = WalletCommand {
         action: WalletAction::Create {
             name: name.to_string(),
-            password: password.clone(),
+            password: password_copy.clone(),
         },
     };
 
-    cmd.execute().await?;
-    Ok(())
+    let result = cmd.execute().await;
+    
+    // Zeroize sensitive data
+    password_copy.zeroize();
+    
+    result
 }
 
 async fn import_wallet() -> Result<()> {
@@ -111,9 +140,29 @@ async fn import_wallet() -> Result<()> {
         style("This should start with '0x' followed by 64 hexadecimal characters.").dim()
     );
 
-    let private_key = inquire::Password::new("Private key (0x...):")
-        .with_display_mode(inquire::PasswordDisplayMode::Hidden)
-        .with_help_message("The private key of the wallet to import")
+    let private_key = inquire::Text::new("Private key (0x...):")
+        .with_help_message("The private key of the wallet to import (will be masked)")
+        .with_validator(|input: &str| {
+            if !input.starts_with("0x") {
+                return Ok(inquire::validator::Validation::Invalid("Private key must start with '0x'".into()));
+            }
+            if input.len() != 66 {
+                return Ok(inquire::validator::Validation::Invalid("Private key must be 66 characters (0x + 64 hex chars)".into()));
+            }
+            if !input[2..].chars().all(|c| c.is_ascii_hexdigit()) {
+                return Ok(inquire::validator::Validation::Invalid("Private key must contain only hexadecimal characters".into()));
+            }
+            Ok(inquire::validator::Validation::Valid)
+        })
+        .with_formatter(&|input| {
+            if input.is_empty() {
+                String::new()
+            } else if input.len() <= 2 {
+                input.to_string()
+            } else {
+                format!("0x{}", "*".repeat(input.len() - 2))
+            }
+        })
         .prompt()?;
 
     let name = inquire::Text::new("Wallet name:")
@@ -135,6 +184,7 @@ async fn import_wallet() -> Result<()> {
         .with_custom_confirmation_error_message("The passwords don't match.")
         .with_custom_confirmation_message("Please confirm your password:")
         .with_formatter(&|_| String::from("✓ Password set"))
+        .with_validator(validate_password)
         .prompt()?;
 
     println!(
@@ -142,17 +192,32 @@ async fn import_wallet() -> Result<()> {
         style("⏳ Importing your wallet. This may take a few seconds...").dim()
     );
 
+    let mut private_key_copy = private_key.clone();
+    let mut password_copy = password.clone();
     let cmd = WalletCommand {
         action: WalletAction::Import {
-            private_key: private_key.clone(),
+            private_key: private_key_copy.clone(),
             name: name.clone(),
-            password: password.clone(),
+            password: password_copy.clone(),
         },
     };
 
-    cmd.execute().await?;
+    let result = cmd.execute().await;
+    
+    // Zeroize sensitive data
+    private_key_copy.zeroize();
+    password_copy.zeroize();
+    
+    match result {
+        Ok(_) => {
+            println!("\n{}", style("✅ Wallet imported successfully!").green());
+        }
+        Err(e) => {
+            println!("\n{}", style(&format!("❌ Failed to import wallet: {}", e)).red());
+            return Err(e);
+        }
+    }
 
-    println!("\n{}", style("✅ Wallet imported successfully!").green());
     Ok(())
 }
 
@@ -223,6 +288,63 @@ async fn rename_wallet() -> Result<()> {
         style(format!("renamed to {}", new_name)).green()
     );
 
+    Ok(())
+}
+
+/// Show private key for the current wallet (like MetaMask)
+async fn export_private_key() -> Result<()> {
+    use dialoguer::Confirm;
+    use std::fs;
+    
+    println!("\n{}", style("🔑 Show Private Key").bold().red());
+    println!("{}", "=".repeat(30));
+    
+    // Security warning
+    println!("{}", style("⚠️  WARNING: Never share your private key!").red().bold());
+    println!("{}", style("• Anyone with this key can access your funds").yellow());
+    println!("{}", style("• Make sure no one is watching your screen").yellow());
+    
+    let confirm = Confirm::new()
+        .with_prompt("I understand the risks, show my private key")
+        .default(false)
+        .interact()?;
+        
+    if !confirm {
+        return Ok(());
+    }
+    
+    // Load wallet data from file
+    let wallet_file = crate::utils::constants::wallet_file_path();
+    if !wallet_file.exists() {
+        println!("{}", style("❌ No wallets found").red());
+        return Ok(());
+    }
+    
+    let data = fs::read_to_string(&wallet_file)?;
+    let wallet_data: crate::types::wallet::WalletData = serde_json::from_str(&data)?;
+    
+    let current_wallet = wallet_data.get_current_wallet().ok_or_else(|| {
+        anyhow::anyhow!("No wallet selected")
+    })?;
+    
+    let password = inquire::Password::new("Enter wallet password:")
+        .with_display_mode(inquire::PasswordDisplayMode::Masked)
+        .prompt()?;
+    
+    println!(
+        "\n{}",
+        style("⏳ Decrypting your private key. This may take a few seconds...").dim()
+    );
+    
+    match current_wallet.decrypt_private_key(&password) {
+        Ok(private_key) => {
+            println!("\n{}", style("Your Private Key:").bold());
+            println!("{}", style(&private_key).cyan().bold());
+            println!("\n{}", style("⚠️  Keep this safe and never share it!").red());
+        }
+        Err(_) => println!("{}", style("❌ Incorrect password").red()),
+    }
+    
     Ok(())
 }
 

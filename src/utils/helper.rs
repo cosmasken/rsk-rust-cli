@@ -11,8 +11,9 @@ pub struct Config {
     pub wallet: WalletConfig,
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, zeroize::Zeroize)]
 pub struct WalletConfig {
+    #[zeroize(skip)]
     pub current_wallet_address: Option<String>,
     pub private_key: Option<String>,
     pub mnemonic: Option<String>,

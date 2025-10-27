@@ -46,8 +46,9 @@ This tool provides comprehensive functionality to connect to an Ethereum-compati
 
 - Switch between Mainnet and Testnet
 - Configure custom RPC endpoints
-- Manage API keys for services
+- Manage API keys with validation for Rootstock networks
 - View network status and connection details
+- Offline functionality for wallet and contact management
 
 ## 🛠️ Installation
 
@@ -96,56 +97,48 @@ The wallet features an intuitive interactive interface. Simply run:
 cargo run
 ```
 
-## Demo
+### 📋 Individual Feature Demos
+
+For detailed walkthroughs of specific features:
 
 ### First Time Setup
 
-[![First Time Setup](https://asciinema.org/a/V8Qf1AboSZu08l12KJFxTfyeV.svg)](https://asciinema.org/a/V8Qf1AboSZu08l12KJFxTfyeV)
+[![First Time Setup](https://asciinema.org/a/lbHMriiOt5ZNfpyP3LnjCRJ6e.svg)]( https://asciinema.org/a/lbHMriiOt5ZNfpyP3LnjCRJ6e)
 
-### Importing Existing Wallet
+### Wallet Features
 
-[![Importing Existing Wallet](https://asciinema.org/a/cVrvEOP4LvJQLvTitxcayRBFt.svg)](https://asciinema.org/a/cVrvEOP4LvJQLvTitxcayRBFt)
-
-### Wallet Creation
-
-[![Wallet Creation](https://asciinema.org/a/Lj7YVm8idPbAEpHYPfjFuTfns.svg)](https://asciinema.org/a/Lj7YVm8idPbAEpHYPfjFuTfns)
-
-### List Wallets & Switch Wallets
-
-[![List Wallets](https://asciinema.org/a/HUpONPUC4OgQKFyStNm5KwaqT.svg)](https://asciinema.org/a/HUpONPUC4OgQKFyStNm5KwaqT)
-
-### Delete Wallet & Rename Wallet
-
-[![Delete Wallet](https://asciinema.org/a/cqjxdJjfaY1wqvO4upgRUMKDG.svg)](https://asciinema.org/a/cqjxdJjfaY1wqvO4upgRUMKDG)
+Create Wallet, Importing Existing Wallet, List Wallets, Switch Wallets, Delete Wallet & Rename Wallet
+[![Importing Existing Wallet](https://asciinema.org/a/BoPr2TFlggYem2b1zhhEzS52X.svg)](https://asciinema.org/a/BoPr2TFlggYem2b1zhhEzS52X)
 
 ### Check Balance of RBTC and ERC-20 Tokens
 
 Check your RBTC and ERC-20 token balances (e.g., RIF).
 
-[View example transaction on explorer](https://explorer.testnet.rootstock.io/tx/0x0293c59578303f3dc88daeda6c8564fd39b612dd85d7a1e025a37e611dc5b900)
-[![Check Balance](https://asciinema.org/a/rqlxYIWZ2Gh1Pn5sEFZZFK5xz.svg)](https://asciinema.org/a/rqlxYIWZ2Gh1Pn5sEFZZFK5xz
+[![Check Balance](https://asciinema.org/a/ChSOgxrI2VXuA5Yq6Q0Jgc2nI.svg)](https://asciinema.org/a/ChSOgxrI2VXuA5Yq6Q0Jgc2nI
 )
 
 ### Send Funds
 
 Transfer RBTC from one wallet to another (e.g., from personal to lock wallet).
-[![Send Funds](https://asciinema.org/a/tEt4dSOgmEEguP6pgQ7setuPV.svg)](https://asciinema.org/a/tEt4dSOgmEEguP6pgQ7setuPV
+[![Send Funds](https://asciinema.org/a/dZTXi9OFBD2npbMpjfA68INX3.svg)](https://asciinema.org/a/dZTXi9OFBD2npbMpjfA68INX3
+)
+[View example transaction on explorer](https://explorer.testnet.rootstock.io/tx/c77c5bf53d1492bcf88104a746ca7a21f65add08f92dc0f9cad35db0a97886b0
 )
 
 ### Set API Key
 
-Configure your API key for accessing transaction history and status checking.
-[![Set API Key](https://asciinema.org/a/6ZdWMvEMMZVsSCFkNHjq3MbPq.svg)](https://asciinema.org/a/6ZdWMvEMMZVsSCFkNHjq3MbPq)
+Configure and validate your API key for accessing transaction history and status checking.
+[![Set API Key](https://asciinema.org/a/LPdZYLNWcCK0feJyvcXDFZSXn.svg)](https://asciinema.org/a/LPdZYLNWcCK0feJyvcXDFZSXn)
 
-### Transaction History
+### Transaction History(make sure alchemy api key is set)
 
 [![Set API Key](https://asciinema.org/a/Sh7qW67bHkDz0KGSjiqBLc8JC.svg)](https://asciinema.org/a/Sh7qW67bHkDz0KGSjiqBLc8JC)
 
 ### Check Transaction Status
 
-[![Check Transaction Status](https://asciinema.org/a/CYYjrSV58KRGMgOmbdknm85Am.svg)](https://asciinema.org/a/CYYjrSV58KRGMgOmbdknm85Am)
+[![Check Transaction Status](https://asciinema.org/a/jwQkdPRDSaUx8WC61ZNb8RnJ5.svg)](https://asciinema.org/a/jwQkdPRDSaUx8WC61ZNb8RnJ5)
 
-You can also view it at [View Transaction](https://explorer.testnet.rsk.co/tx/0293c59578303f3dc88daeda6c8564fd39b612dd85d7a1e025a37e611dc5b900)
+You can also view it at [View Transaction](https://explorer.testnet.rsk.co/tx/c77c5bf53d1492bcf88104a746ca7a21f65add08f92dc0f9cad35db0a97886b0)
 
 ### Bulk Transfer
 
@@ -157,12 +150,12 @@ Send multiple transactions at once.
 ### Token Management
 
 Add, list, and delete tokens from your wallet.
-[![Add Token](https://asciinema.org/a/dY7GpSsmk6uxsZdB9n6C2Fzgs.svg)](https://asciinema.org/a/dY7GpSsmk6uxsZdB9n6C2Fzgs)
+[![Add Token](https://asciinema.org/a/H4vFOowEHUDBi9txo8PGntedp.svg)](https://asciinema.org/a/H4vFOowEHUDBi9txo8PGntedp)
 
 ### Contact
 
 Add, list, and delete contacts from your address book.
-[![Add Contact](https://asciinema.org/a/QaN1SZIXud4dxJ8woqDqnb1v5.svg)](https://asciinema.org/a/QaN1SZIXud4dxJ8woqDqnb1v5)
+[![Add Contact](https://asciinema.org/a/q7aRPz3nUxuwopSSUFTZlNmxj.svg)](https://asciinema.org/a/q7aRPz3nUxuwopSSUFTZlNmxj)
 
 ## 🔍 Troubleshooting
 
@@ -177,6 +170,14 @@ Add, list, and delete contacts from your address book.
 #### Connection Issues
 
 - Verify your internet connection
+- App automatically switches to offline mode when network unavailable
+- Limited functionality available offline (wallet management, contacts, tokens)
+
+#### API Key Issues
+
+- Ensure API key is valid for the selected network (mainnet/testnet)
+- Keys are validated against Rootstock RPC endpoints
+- Invalid keys will show clear error messages
 
 #### Wallet Issues
 
@@ -191,6 +192,20 @@ Add, list, and delete contacts from your address book.
 - [RSK Smart Contracts](https://developers.rsk.co/develop/)
 - [RSK Developer Portal](https://developers.rsk.co/)
 - [Issue Tracker](https://github.com/rsksmart/rsk-rust-cli/issues)
+
+## Security
+
+This application handles private keys and financial transactions. Security measures include:
+
+- **Encryption**: AES-256-GCM encryption for private keys with authenticated encryption
+- **File Security**: Secure file permissions (0o600) for wallet files
+- **Password Security**: Strong password validation with complexity requirements
+- **Memory Security**: Memory zeroization for sensitive data to prevent leaks
+- **Input Validation**: Comprehensive input validation and sanitization
+- **API Security**: API key validation against Rootstock networks
+- **Offline Security**: Core wallet functions available without network exposure
+
+**Dependency Status:** All security vulnerabilities resolved. Minor unmaintained dependency warnings (derivative, paste) are transitive dependencies via Alloy and pose no security risk.
 
 ## Contributing
 
