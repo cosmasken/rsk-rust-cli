@@ -143,9 +143,9 @@ You can also view it at [View Transaction](https://explorer.testnet.rsk.co/tx/c7
 ### Bulk Transfer
 
 Send multiple transactions at once.
-[![Bulk Transfer](https://asciinema.org/a/CX1fT6B9prX6Jjg652YWWrLrR.svg)](https://asciinema.org/a/CX1fT6B9prX6Jjg652YWWrLrR)
+[![Bulk Transfer](https://asciinema.org/a/AC39AUnt9U0ih5MDUWltPdJWV.svg)](https://asciinema.org/a/AC39AUnt9U0ih5MDUWltPdJWV)
 
- [View Transaction 1](https://explorer.testnet.rsk.co/tx/87f26638a688477230855acc548595c6eb6baaf3fdb5ffba4d2b1cf788d2aaec) , [View Transaction 2](https://explorer.testnet.rsk.co/tx/de62ba82e458e52ae36f47750a86c73a9710ced3f24264a8e65780d42d77b72e)
+ [View Transaction 1](https://explorer.testnet.rsk.co/tx/0xfeeb73fb060f59352ff0aa99373fb502edd9702d999e8043158db18eb969ffa3) , [View Transaction 2](https://explorer.testnet.rsk.co/tx/0xbe16c77a67ee99edd492c14ca5668402d2a6a21baa39bdd2bd582ad301086951)
 
 ### Token Management
 

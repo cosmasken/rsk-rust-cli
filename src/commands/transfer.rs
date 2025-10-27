@@ -45,6 +45,11 @@ pub struct TransferCommand {
 impl TransferCommand {
     /// Execute the transfer command and return the transfer result
     pub async fn execute(&self) -> Result<TransferResult> {
+        self.execute_with_password(None).await
+    }
+
+    /// Execute the transfer command with an optional pre-validated password
+    pub async fn execute_with_password(&self, password: Option<&str>) -> Result<TransferResult> {
         // Load wallet file and get current wallet
         let wallet_file = constants::wallet_file_path();
         if !wallet_file.exists() {
@@ -61,7 +66,11 @@ impl TransferCommand {
         })?;
 
         // Prompt for password and decrypt private key
-        let mut password = prompt_password("Enter password for the default wallet: ")?;
+        let mut password = if let Some(pwd) = password {
+            pwd.to_string()
+        } else {
+            prompt_password("Enter password for the default wallet: ")?
+        };
         let private_key = default_wallet.decrypt_private_key(&password)?;
         
         // Zeroize password after use

@@ -104,7 +104,7 @@ impl Wallet {
             // New GCM format
             let cipher = Aes256Gcm::new(Key::<Aes256Gcm>::from_slice(&key));
             let plaintext = cipher.decrypt(Nonce::from_slice(&nonce_or_iv), encrypted_key.as_ref())
-                .map_err(|e| anyhow!("GCM decryption failed: {}", e))?;
+                .map_err(|_| anyhow!("Incorrect password. Please try again."))?;
             
             if plaintext.len() != 32 {
                 return Err(anyhow!("Decrypted private key has invalid length: {} bytes (expected 32)", plaintext.len()));
