@@ -4,6 +4,7 @@ use anyhow::{Result, anyhow};
 use clap::Parser;
 use colored::Colorize;
 use alloy::signers::local::PrivateKeySigner;
+use zeroize::Zeroize;
 
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -41,6 +42,21 @@ pub enum WalletAction {
     Delete {
         name: String,
     },
+}
+
+impl Drop for WalletAction {
+    fn drop(&mut self) {
+        match self {
+            WalletAction::Create { password, .. } => {
+                password.zeroize();
+            }
+            WalletAction::Import { private_key, password, .. } => {
+                private_key.zeroize();
+                password.zeroize();
+            }
+            _ => {}
+        }
+    }
 }
 
 impl WalletCommand {

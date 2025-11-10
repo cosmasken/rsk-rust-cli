@@ -71,7 +71,7 @@ impl TransferCommand {
         } else {
             prompt_password("Enter password for the default wallet: ")?
         };
-        let private_key = default_wallet.decrypt_private_key(&password)?;
+        let mut private_key = default_wallet.decrypt_private_key(&password)?;
         
         // Zeroize password after use
         password.zeroize();
@@ -198,6 +198,7 @@ impl TransferCommand {
         );
 
         // Zeroize sensitive data before returning
+        private_key.zeroize();
         private_key_copy.zeroize();
 
         Ok(TransferResult {

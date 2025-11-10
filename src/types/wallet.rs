@@ -34,14 +34,24 @@ pub struct WalletData {
     pub api_key: Option<String>,
 }
 
+impl Drop for WalletData {
+    fn drop(&mut self) {
+        if let Some(ref mut key) = self.api_key {
+            key.zeroize();
+        }
+    }
+}
+
 impl Wallet {
     pub fn address(&self) -> Address {
         self.address
     }
 
     pub fn new(wallet: PrivateKeySigner, name: &str, password: &str) -> Result<Self, Error> {
+        let mut private_key_bytes = wallet.to_bytes().to_vec();
         let (encrypted_key, iv, salt) =
-            Self::encrypt_private_key(wallet.to_bytes().as_ref(), password)?;
+            Self::encrypt_private_key(&private_key_bytes, password)?;
+        private_key_bytes.zeroize();
         Ok(Self {
             address: wallet.address(),
             balance: U256::ZERO,
@@ -103,13 +113,15 @@ impl Wallet {
         let result = if nonce_or_iv.len() == 12 {
             // New GCM format
             let cipher = Aes256Gcm::new(Key::<Aes256Gcm>::from_slice(&key));
-            let plaintext = cipher.decrypt(Nonce::from_slice(&nonce_or_iv), encrypted_key.as_ref())
+            let mut plaintext = cipher.decrypt(Nonce::from_slice(&nonce_or_iv), encrypted_key.as_ref())
                 .map_err(|_| anyhow!("Incorrect password. Please try again."))?;
             
             if plaintext.len() != 32 {
                 return Err(anyhow!("Decrypted private key has invalid length: {} bytes (expected 32)", plaintext.len()));
             }
-            format!("0x{}", hex::encode(&plaintext))
+            let result = format!("0x{}", hex::encode(&plaintext));
+            plaintext.zeroize();
+            result
         } else {
             return Err(anyhow!("Unsupported encryption format"));
         };

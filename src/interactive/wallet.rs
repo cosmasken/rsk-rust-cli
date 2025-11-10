@@ -97,7 +97,7 @@ pub async fn create_wallet_with_name(name: &str) -> Result<()> {
         style("This password will be required to access your wallet.").dim()
     );
 
-    let password = inquire::Password::new("Enter password:")
+    let mut password = inquire::Password::new("Enter password:")
         .with_display_toggle_enabled()
         .with_display_mode(inquire::PasswordDisplayMode::Masked)
         .with_custom_confirmation_error_message("The passwords don't match.")
@@ -112,6 +112,7 @@ pub async fn create_wallet_with_name(name: &str) -> Result<()> {
     );
 
     let mut password_copy = password.clone();
+    password.zeroize();
     let cmd = WalletCommand {
         action: WalletAction::Create {
             name: name.to_string(),
@@ -140,7 +141,7 @@ async fn import_wallet() -> Result<()> {
         style("This should start with '0x' followed by 64 hexadecimal characters.").dim()
     );
 
-    let private_key = inquire::Text::new("Private key (0x...):")
+    let mut private_key = inquire::Text::new("Private key (0x...):")
         .with_help_message("The private key of the wallet to import (will be masked)")
         .with_validator(|input: &str| {
             if !input.starts_with("0x") {
@@ -178,7 +179,7 @@ async fn import_wallet() -> Result<()> {
         style("This password will be required to access your wallet.").dim()
     );
 
-    let password = inquire::Password::new("Enter password:")
+    let mut password = inquire::Password::new("Enter password:")
         .with_display_toggle_enabled()
         .with_display_mode(inquire::PasswordDisplayMode::Masked)
         .with_custom_confirmation_error_message("The passwords don't match.")
@@ -194,6 +195,8 @@ async fn import_wallet() -> Result<()> {
 
     let mut private_key_copy = private_key.clone();
     let mut password_copy = password.clone();
+    private_key.zeroize();
+    password.zeroize();
     let cmd = WalletCommand {
         action: WalletAction::Import {
             private_key: private_key_copy.clone(),
@@ -327,7 +330,7 @@ async fn export_private_key() -> Result<()> {
         anyhow::anyhow!("No wallet selected")
     })?;
     
-    let password = inquire::Password::new("Enter wallet password:")
+    let mut password = inquire::Password::new("Enter wallet password:")
         .with_display_mode(inquire::PasswordDisplayMode::Masked)
         .prompt()?;
     
@@ -337,12 +340,17 @@ async fn export_private_key() -> Result<()> {
     );
     
     match current_wallet.decrypt_private_key(&password) {
-        Ok(private_key) => {
+        Ok(mut private_key) => {
+            password.zeroize();
             println!("\n{}", style("Your Private Key:").bold());
             println!("{}", style(&private_key).cyan().bold());
+            private_key.zeroize();
             println!("\n{}", style("⚠️  Keep this safe and never share it!").red());
         }
-        Err(_) => println!("{}", style("❌ Incorrect password").red()),
+        Err(_) => {
+            password.zeroize();
+            println!("{}", style("❌ Incorrect password").red());
+        }
     }
     
     Ok(())
