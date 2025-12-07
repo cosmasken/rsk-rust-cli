@@ -32,7 +32,7 @@ impl SetApiKeyCommand {
 
         // Create API key for validation
         let api_key = ApiKey {
-            key: self.api_key.clone(),
+            key: crate::utils::secrets::SecretString::new(self.api_key.clone()),
             network: network.clone(),
             provider: provider.clone(),
             name: None,
@@ -54,7 +54,7 @@ impl SetApiKeyCommand {
                     WalletData::new()
                 };
 
-                wallet_data.api_key = Some(self.api_key.clone());
+                wallet_data.api_key = Some(crate::utils::secrets::SecretString::new(self.api_key.clone()));
                 crate::utils::secure_fs::write_secure(&wallet_file, &serde_json::to_string_pretty(&wallet_data)?)?;
                 println!("{}: API key saved successfully", "💾 Saved".green().bold());
             }
@@ -75,7 +75,7 @@ impl SetApiKeyCommand {
                     WalletData::new()
                 };
 
-                wallet_data.api_key = Some(self.api_key.clone());
+                wallet_data.api_key = Some(crate::utils::secrets::SecretString::new(self.api_key.clone()));
                 crate::utils::secure_fs::write_secure(&wallet_file, &serde_json::to_string_pretty(&wallet_data)?)?;
                 println!("{}: API key saved (unvalidated)", "💾 Saved".yellow().bold());
             }

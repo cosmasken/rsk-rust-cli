@@ -4,6 +4,7 @@ use dialoguer::{Confirm, Password, Select, theme::ColorfulTheme};
 
 use crate::config::{Config, ConfigManager, DOCS_URL, RSK_RPC_DOCS_URL};
 use crate::types::network::Network;
+use crate::utils::secrets::SecretString;
 
 pub fn run_setup_wizard() -> Result<()> {
     println!(
@@ -106,7 +107,7 @@ fn setup_api_keys(config: &mut Config, network: Network) -> Result<()> {
         // Add RSK RPC API key to config
         use crate::api::{ApiKey, ApiProvider};
         let rsk_api_key = ApiKey {
-            key: rsk_key,
+            key: SecretString::new(rsk_key),
             network: key_type.to_string(),
             provider: ApiProvider::RskRpc,
             name: Some("RSK RPC".to_string()),
@@ -140,7 +141,7 @@ fn setup_api_keys(config: &mut Config, network: Network) -> Result<()> {
         // Add Alchemy API key to config
         use crate::api::{ApiKey, ApiProvider};
         let alchemy_api_key = ApiKey {
-            key: alchemy_key.clone(),
+            key: SecretString::new(alchemy_key.clone()),
             network: key_type.to_string(),
             provider: ApiProvider::Alchemy,
             name: Some("Alchemy".to_string()),

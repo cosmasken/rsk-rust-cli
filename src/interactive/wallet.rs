@@ -1,4 +1,5 @@
 use crate::commands::wallet::{WalletAction, WalletCommand};
+use crate::utils::secrets::SecretPassword;
 use anyhow::Result;
 use console::style;
 use zeroize::Zeroize;
@@ -97,7 +98,7 @@ pub async fn create_wallet_with_name(name: &str) -> Result<()> {
         style("This password will be required to access your wallet.").dim()
     );
 
-    let mut password = inquire::Password::new("Enter password:")
+    let password_str = inquire::Password::new("Enter password:")
         .with_display_toggle_enabled()
         .with_display_mode(inquire::PasswordDisplayMode::Masked)
         .with_custom_confirmation_error_message("The passwords don't match.")
@@ -111,20 +112,18 @@ pub async fn create_wallet_with_name(name: &str) -> Result<()> {
         style("⏳ Creating your wallet. This may take a few seconds...").dim()
     );
 
-    let mut password_copy = password.clone();
-    password.zeroize();
+    let secret_password = SecretPassword::new(password_str);
     let cmd = WalletCommand {
         action: WalletAction::Create {
             name: name.to_string(),
-            password: password_copy.clone(),
+            password: secret_password.expose().to_string(), // Temporary until we can update WalletAction
         },
     };
 
     let result = cmd.execute().await;
-    
-    // Zeroize sensitive data
-    password_copy.zeroize();
-    
+
+    // secret_password is automatically zeroized when it goes out of scope
+
     result
 }
 
@@ -179,7 +178,7 @@ async fn import_wallet() -> Result<()> {
         style("This password will be required to access your wallet.").dim()
     );
 
-    let mut password = inquire::Password::new("Enter password:")
+    let password_str = inquire::Password::new("Enter password:")
         .with_display_toggle_enabled()
         .with_display_mode(inquire::PasswordDisplayMode::Masked)
         .with_custom_confirmation_error_message("The passwords don't match.")
@@ -193,24 +192,24 @@ async fn import_wallet() -> Result<()> {
         style("⏳ Importing your wallet. This may take a few seconds...").dim()
     );
 
-    let mut private_key_copy = private_key.clone();
-    let mut password_copy = password.clone();
+    let private_key_copy = private_key.clone();
+    let secret_password = SecretPassword::new(password_str);
     private_key.zeroize();
-    password.zeroize();
+
     let cmd = WalletCommand {
         action: WalletAction::Import {
             private_key: private_key_copy.clone(),
             name: name.clone(),
-            password: password_copy.clone(),
+            password: secret_password.expose().to_string(), // Temporary until we can update WalletAction
         },
     };
 
     let result = cmd.execute().await;
-    
+
     // Zeroize sensitive data
-    private_key_copy.zeroize();
-    password_copy.zeroize();
-    
+    let mut private_key_copy_for_zeroize = private_key_copy;
+    private_key_copy_for_zeroize.zeroize();
+
     match result {
         Ok(_) => {
             println!("\n{}", style("✅ Wallet imported successfully!").green());
@@ -330,25 +329,26 @@ async fn export_private_key() -> Result<()> {
         anyhow::anyhow!("No wallet selected")
     })?;
     
-    let mut password = inquire::Password::new("Enter wallet password:")
+    let password_str = inquire::Password::new("Enter wallet password:")
         .with_display_mode(inquire::PasswordDisplayMode::Masked)
         .prompt()?;
-    
+
     println!(
         "\n{}",
         style("⏳ Decrypting your private key. This may take a few seconds...").dim()
     );
-    
-    match current_wallet.decrypt_private_key(&password) {
-        Ok(mut private_key) => {
-            password.zeroize();
+
+    let secret_password = SecretPassword::new(password_str);
+    match current_wallet.decrypt_private_key(&secret_password) {
+        Ok(private_key_secret) => {
+            // secret_password is automatically zeroized when it goes out of scope
             println!("\n{}", style("Your Private Key:").bold());
-            println!("{}", style(&private_key).cyan().bold());
-            private_key.zeroize();
+            println!("{}", style(private_key_secret.expose()).cyan().bold());
+            // private_key_secret is automatically zeroized when it goes out of scope
             println!("\n{}", style("⚠️  Keep this safe and never share it!").red());
         }
         Err(_) => {
-            password.zeroize();
+            // secret_password is automatically zeroized when it goes out of scope
             println!("{}", style("❌ Incorrect password").red());
         }
     }

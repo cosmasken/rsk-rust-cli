@@ -2,14 +2,13 @@ use crate::{
     commands::{tokens::TokenRegistry, transfer::TransferCommand},
     config::ConfigManager,
     types::wallet::WalletData,
-    utils::constants,
+    utils::{constants, secrets::SecretPassword},
 };
 use anyhow::{Result, anyhow};
 use dialoguer::{Confirm, Input, Select};
 use alloy::primitives::Address;
 use serde::Deserialize;
 use std::fs;
-use zeroize::Zeroize;
 
 #[derive(Debug, Clone)]
 struct Transfer {
@@ -98,8 +97,8 @@ pub async fn bulk_transfer() -> Result<()> {
         .ok_or_else(|| anyhow!("No active wallet found. Please select a wallet first."))?;
 
     // Prompt for password once at the beginning and validate it
-    let password = rpassword::prompt_password("Enter password for the wallet: ")?;
-    
+    let password = SecretPassword::new(rpassword::prompt_password("Enter password for the wallet: ")?);
+
     // Validate password by trying to decrypt
     match current_wallet.decrypt_private_key(&password) {
         Ok(_) => {
@@ -240,7 +239,7 @@ pub async fn bulk_transfer() -> Result<()> {
             token: transfer.token_address.clone(),
         };
 
-        match transfer_cmd.execute_with_password(Some(&password)).await {
+        match transfer_cmd.execute_with_password(Some(password.expose())).await {
             Ok(result) => {
                 println!("✅ Success! Tx: {:?}", result.tx_hash);
                 successful += 1;
@@ -267,9 +266,7 @@ pub async fn bulk_transfer() -> Result<()> {
     println!("✅ Successful: {}", successful);
     println!("❌ Failed: {}", failed);
 
-    // Clean up password from memory
-    let mut password_mut = password;
-    password_mut.zeroize();
+    // password is automatically zeroized when it goes out of scope
 
     Ok(())
 }

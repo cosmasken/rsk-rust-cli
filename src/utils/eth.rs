@@ -40,11 +40,11 @@ impl EthClient {
         };
 
         let _api_key = if let Some(key) = cli_api_key {
-            wallet_data.api_key = Some(key.clone());
+            wallet_data.api_key = Some(crate::utils::secrets::SecretString::new(key.clone()));
             crate::utils::secure_fs::write_secure(&wallet_file, &serde_json::to_string_pretty(&wallet_data)?)?;
             Some(key)
         } else {
-            wallet_data.api_key.clone()
+            wallet_data.api_key.as_ref().map(|k| k.expose().clone())
         };
 
         // Use the RPC URL from config (which defaults to public nodes)

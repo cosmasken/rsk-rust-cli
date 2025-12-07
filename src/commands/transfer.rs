@@ -1,6 +1,6 @@
 use crate::config::ConfigManager;
 use crate::types::wallet::WalletData;
-use crate::utils::constants;
+use crate::utils::{constants, secrets::SecretPassword};
 use crate::utils::eth::EthClient;
 use crate::utils::helper::Config as HelperConfig;
 use anyhow::{Result, anyhow};
@@ -66,24 +66,24 @@ impl TransferCommand {
         })?;
 
         // Prompt for password and decrypt private key
-        let mut password = if let Some(pwd) = password {
-            pwd.to_string()
+        let password = if let Some(pwd) = password {
+            SecretPassword::new(pwd.to_string())
         } else {
-            prompt_password("Enter password for the default wallet: ")?
+            SecretPassword::new(prompt_password("Enter password for the default wallet: ")?)
         };
-        let mut private_key = default_wallet.decrypt_private_key(&password)?;
-        
-        // Zeroize password after use
-        password.zeroize();
-        
-        let _local_wallet = PrivateKeySigner::from_str(&private_key)
+        let private_key = default_wallet.decrypt_private_key(&password)?;
+        let private_key_str = private_key.expose().clone(); // Get the private key string to use
+
+        // The password is automatically zeroized when it goes out of scope
+
+        let _local_wallet = PrivateKeySigner::from_str(private_key.expose())
             .map_err(|e| anyhow!("Failed to create PrivateKeySigner: {}", e))?;
 
         // Get the network from config
         let config = ConfigManager::new()?.load()?;
 
         // Create a new helper config with the private key
-        let mut private_key_copy = private_key.clone();
+        let private_key_copy = private_key_str.clone();
         let client_config = HelperConfig {
             network: config.default_network.get_config(),
             wallet: crate::utils::helper::WalletConfig {
@@ -198,8 +198,9 @@ impl TransferCommand {
         );
 
         // Zeroize sensitive data before returning
-        private_key.zeroize();
-        private_key_copy.zeroize();
+        // private_key is automatically zeroized when it goes out of scope
+        let mut private_key_copy_for_zeroize = private_key_copy;
+        private_key_copy_for_zeroize.zeroize();
 
         Ok(TransferResult {
             tx_hash,

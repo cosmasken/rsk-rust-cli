@@ -117,7 +117,7 @@ pub async fn show_history() -> Result<()> {
 
                 // Validate the API key
                 let api_key_obj = ApiKey {
-                    key: api_key.trim().to_string(),
+                    key: crate::utils::secrets::SecretString::new(api_key.trim().to_string()),
                     network: network_selection.to_string(),
                     provider: ApiProvider::Alchemy,
                     name: None,

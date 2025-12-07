@@ -1,4 +1,5 @@
 use crate::types::contacts::Contact;
+use crate::utils::secrets::{SecretPassword, SecretPrivateKey};
 use aes_gcm::{Aes256Gcm, Key, Nonce, aead::{Aead, KeyInit}};
 use anyhow::Result;
 use anyhow::{Error, anyhow};
@@ -31,13 +32,13 @@ pub struct WalletData {
     pub current_wallet: String,
     pub wallets: HashMap<String, Wallet>,
     pub contacts: Vec<Contact>,
-    pub api_key: Option<String>,
+    pub api_key: Option<crate::utils::secrets::SecretString>,
 }
 
 impl Drop for WalletData {
     fn drop(&mut self) {
-        if let Some(ref mut key) = self.api_key {
-            key.zeroize();
+        if let Some(ref mut secret_key) = self.api_key {
+            secret_key.expose_mut().zeroize();
         }
     }
 }
@@ -47,10 +48,10 @@ impl Wallet {
         self.address
     }
 
-    pub fn new(wallet: PrivateKeySigner, name: &str, password: &str) -> Result<Self, Error> {
+    pub fn new(wallet: PrivateKeySigner, name: &str, password: &SecretPassword) -> Result<Self, Error> {
         let mut private_key_bytes = wallet.to_bytes().to_vec();
         let (encrypted_key, iv, salt) =
-            Self::encrypt_private_key(&private_key_bytes, password)?;
+            Self::encrypt_private_key(&private_key_bytes, password.expose())?;
         private_key_bytes.zeroize();
         Ok(Self {
             address: wallet.address(),
@@ -75,18 +76,18 @@ impl Wallet {
         let params = Params::recommended();
         let mut key = [0u8; 32];
         scrypt(password.as_bytes(), &salt, &params, &mut key)?;
-        
+
         let cipher = Aes256Gcm::new(Key::<Aes256Gcm>::from_slice(&key));
         let ciphertext = cipher.encrypt(Nonce::from_slice(&nonce), private_key)
             .map_err(|e| anyhow!("Encryption failed: {}", e))?;
-        
+
         // Zeroize sensitive data
         key.zeroize();
-        
+
         Ok((ciphertext, nonce.to_vec(), salt.to_vec()))
     }
 
-    pub fn decrypt_private_key(&self, password: &str) -> Result<String, anyhow::Error> {
+    pub fn decrypt_private_key(&self, password: &SecretPassword) -> Result<SecretPrivateKey, anyhow::Error> {
         // Decode Base64-encoded salt, nonce/IV, and encrypted key
         let salt = STANDARD
             .decode(&self.salt)
@@ -106,7 +107,7 @@ impl Wallet {
         // Derive the key using scrypt
         let mut key = [0u8; 32];
         let params = Params::recommended();
-        scrypt(password.as_bytes(), &salt, &params, &mut key)
+        scrypt(password.expose().as_bytes(), &salt, &params, &mut key)
             .map_err(|e| anyhow!("Key derivation failed: {}", e))?;
 
         // Try GCM first (new format), fallback to CBC (legacy)
@@ -115,7 +116,7 @@ impl Wallet {
             let cipher = Aes256Gcm::new(Key::<Aes256Gcm>::from_slice(&key));
             let mut plaintext = cipher.decrypt(Nonce::from_slice(&nonce_or_iv), encrypted_key.as_ref())
                 .map_err(|_| anyhow!("Incorrect password. Please try again."))?;
-            
+
             if plaintext.len() != 32 {
                 return Err(anyhow!("Decrypted private key has invalid length: {} bytes (expected 32)", plaintext.len()));
             }
@@ -128,8 +129,8 @@ impl Wallet {
 
         // Zeroize sensitive data
         key.zeroize();
-        
-        Ok(result)
+
+        Ok(SecretPrivateKey::new(result))
     }
 }
 

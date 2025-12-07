@@ -23,15 +23,18 @@ impl fmt::Display for ApiProvider {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, zeroize::Zeroize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ApiKey {
-    pub key: String,
-    #[zeroize(skip)]
+    pub key: crate::utils::secrets::SecretString,
     pub network: String, // "mainnet", "testnet", etc.
-    #[zeroize(skip)]
     pub provider: ApiProvider,
-    #[zeroize(skip)]
     pub name: Option<String>,
+}
+
+impl zeroize::Zeroize for ApiKey {
+    fn zeroize(&mut self) {
+        self.key.expose_mut().zeroize();
+    }
 }
 
 #[derive(Debug, Default, Serialize, Deserialize)]
