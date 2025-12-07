@@ -205,6 +205,36 @@ This application handles private keys and financial transactions. Security measu
 - **API Security**: API key validation against Rootstock networks
 - **Offline Security**: Core wallet functions available without network exposure
 
+### ⚠️ Command-Line Security Notice
+
+When using commands that require passwords or private keys as arguments, be aware that:
+
+- **Shell History**: These values may be stored in your shell history (`.bash_history`, `.zsh_history`, etc.)
+- **Process Listings**: They may be visible in process listings (`ps aux`, `top`, etc.)
+- **System Logs**: Some systems log command-line arguments
+
+**Recommended Security Practices:**
+
+1. **Use Interactive Mode**: The interactive mode prompts for sensitive data securely without exposing it in command history
+2. **Clear Shell History**: After entering sensitive commands, clear your shell history:
+   ```bash
+   history -c  # Clear current session
+   history -w  # Write empty history to file
+   ```
+3. **Use Environment Variables**: For automation, use environment variables instead of command-line arguments
+4. **Avoid Production Use**: For production environments, use secure secret management systems
+
+**Example - Secure vs Insecure:**
+
+```bash
+# ❌ INSECURE - Password visible in history
+rsk-rust-cli wallet create myWallet myPassword123
+
+# ✅ SECURE - Use interactive mode
+cargo run
+# Then select "Wallet Management" and follow prompts
+```
+
 **Dependency Status:** All security vulnerabilities resolved. Minor unmaintained dependency warnings (derivative, paste) are transitive dependencies via Alloy and pose no security risk.
 
 ## Contributing

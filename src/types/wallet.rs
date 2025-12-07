@@ -35,13 +35,7 @@ pub struct WalletData {
     pub api_key: Option<crate::utils::secrets::SecretString>,
 }
 
-impl Drop for WalletData {
-    fn drop(&mut self) {
-        if let Some(ref mut secret_key) = self.api_key {
-            secret_key.expose_mut().zeroize();
-        }
-    }
-}
+// Note: Drop implementation removed - Zeroizing wrapper handles cleanup automatically
 
 impl Wallet {
     pub fn address(&self) -> Address {

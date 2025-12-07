@@ -16,7 +16,7 @@ pub struct WalletCommand {
     pub action: WalletAction,
 }
 
-#[derive(Parser, Debug)]
+#[derive(Parser)]
 pub enum WalletAction {
     Create {
         name: String,
@@ -42,6 +42,46 @@ pub enum WalletAction {
     Delete {
         name: String,
     },
+}
+
+// Custom Debug implementation that redacts sensitive fields
+impl std::fmt::Debug for WalletAction {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            WalletAction::Create { name, .. } => {
+                f.debug_struct("Create")
+                    .field("name", name)
+                    .field("password", &"<redacted>")
+                    .finish()
+            }
+            WalletAction::Import { name, .. } => {
+                f.debug_struct("Import")
+                    .field("name", name)
+                    .field("private_key", &"<redacted>")
+                    .field("password", &"<redacted>")
+                    .finish()
+            }
+            WalletAction::List => write!(f, "List"),
+            WalletAction::Switch { name } => {
+                f.debug_struct("Switch").field("name", name).finish()
+            }
+            WalletAction::Rename { old_name, new_name } => {
+                f.debug_struct("Rename")
+                    .field("old_name", old_name)
+                    .field("new_name", new_name)
+                    .finish()
+            }
+            WalletAction::Backup { name, path } => {
+                f.debug_struct("Backup")
+                    .field("name", name)
+                    .field("path", path)
+                    .finish()
+            }
+            WalletAction::Delete { name } => {
+                f.debug_struct("Delete").field("name", name).finish()
+            }
+        }
+    }
 }
 
 impl Drop for WalletAction {
