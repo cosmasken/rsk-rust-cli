@@ -14,7 +14,7 @@ use std::fs;
 use std::str::FromStr;
 
 /// Show the transaction history for an address or the current wallet
-#[derive(Parser, Debug, Clone)]
+#[derive(Parser, Clone)]
 pub struct HistoryCommand {
     /// Address to check transaction history for
     #[arg(short, long)]
@@ -75,6 +75,29 @@ pub struct HistoryCommand {
     /// Network to query (mainnet | testnet). Defaults to mainnet.
     #[arg(long, default_value = "mainnet")]
     pub network: String,
+}
+
+// Custom Debug implementation that redacts the API key
+impl std::fmt::Debug for HistoryCommand {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("HistoryCommand")
+            .field("address", &self.address)
+            .field("contact", &self.contact)
+            .field("limit", &self.limit)
+            .field("detailed", &self.detailed)
+            .field("status", &self.status)
+            .field("token", &self.token)
+            .field("from", &self.from)
+            .field("to", &self.to)
+            .field("sort_by", &self.sort_by)
+            .field("sort_order", &self.sort_order)
+            .field("export_csv", &self.export_csv)
+            .field("incoming", &self.incoming)
+            .field("outgoing", &self.outgoing)
+            .field("api_key", &self.api_key.as_ref().map(|_| "<redacted>"))
+            .field("network", &self.network)
+            .finish()
+    }
 }
 
 impl HistoryCommand {

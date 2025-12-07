@@ -8,11 +8,20 @@ use clap::Parser;
 use colored::Colorize;
 use std::fs;
 
-#[derive(Parser, Debug)]
+#[derive(Parser)]
 pub struct SetApiKeyCommand {
     /// API key to set
     #[arg(long, required = true)]
     pub api_key: String,
+}
+
+// Custom Debug implementation that redacts the API key
+impl std::fmt::Debug for SetApiKeyCommand {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("SetApiKeyCommand")
+            .field("api_key", &"<redacted>")
+            .finish()
+    }
 }
 
 impl SetApiKeyCommand {
