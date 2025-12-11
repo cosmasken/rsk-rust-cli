@@ -28,14 +28,6 @@ impl<T: Zeroize> Secret<T> {
     }
 }
 
-impl<T: Zeroize + Clone + Default> Secret<T> {
-    /// Take ownership of the inner value and return it, replacing with Default
-    /// Note: The caller is responsible for securely handling the returned value
-    pub fn into_inner_with_default(mut self) -> T {
-        std::mem::take(&mut *self.value)
-    }
-}
-
 // Safe Debug implementation that doesn't expose the secret content
 impl<T: Zeroize> std::fmt::Debug for Secret<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -88,14 +80,6 @@ impl<T: Zeroize> SerializableSecret<T> {
     /// Get a mutable reference to the inner value
     pub fn expose_mut(&mut self) -> &mut T {
         &mut self.value
-    }
-}
-
-impl<T: Zeroize + Clone + Default> SerializableSecret<T> {
-    /// Take ownership of the inner value and return it, replacing with Default
-    /// Note: The caller is responsible for securely handling the returned value
-    pub fn into_inner_with_default(mut self) -> T {
-        std::mem::take(&mut *self.value)
     }
 }
 
@@ -175,12 +159,6 @@ mod tests {
         assert_eq!(secret.expose(), &vec![1u8, 2, 3, 4, 5]);
     }
 
-    #[test]
-    fn test_secret_into_inner_with_default() {
-        let secret = Secret::new("test_data".to_string());
-        let inner = secret.into_inner_with_default();
-        assert_eq!(inner, "test_data");
-    }
 
     #[test]
     fn test_serializable_secret_serialization() {
