@@ -40,7 +40,7 @@ impl Config {
             .iter()
             .find(|k| &k.provider == provider && k.network == network_str)
         {
-            return Some(&key.key);
+            return Some(key.key.expose());
         }
 
         // Fall back to legacy keys for backward compatibility (Alchemy only)
@@ -77,7 +77,7 @@ impl Config {
 
         // Create and add the API key
         let api_key = ApiKey {
-            key: key.clone(),
+            key: crate::utils::secrets::SecretString::new(key.clone()),
             network: network.to_string(),
             provider: provider.clone(),
             name: name.clone(),
