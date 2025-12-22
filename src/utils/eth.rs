@@ -55,7 +55,7 @@ impl EthClient {
             .private_key
             .as_ref()
             .map(|key| {
-                key.parse::<PrivateKeySigner>()
+                key.as_str().parse::<PrivateKeySigner>()
                     .map_err(|e| anyhow!("Invalid private key: {}", e))
             })
             .transpose()?;

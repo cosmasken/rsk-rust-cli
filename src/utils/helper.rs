@@ -4,6 +4,7 @@ use crate::utils::eth::EthClient;
 use anyhow::Result;
 use colored::Colorize;
 use alloy::primitives::Address;
+use zeroize::Zeroizing;
 
 #[derive(Debug, Clone)]
 pub struct Config {
@@ -15,8 +16,8 @@ pub struct Config {
 pub struct WalletConfig {
     #[zeroize(skip)]
     pub current_wallet_address: Option<String>,
-    pub private_key: Option<String>,
-    pub mnemonic: Option<String>,
+    pub private_key: Option<Zeroizing<String>>,
+    pub mnemonic: Option<Zeroizing<String>>,
 }
 
 impl Default for Config {

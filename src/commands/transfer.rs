@@ -11,7 +11,7 @@ use alloy::signers::local::PrivateKeySigner;
 use rpassword::prompt_password;
 use std::fs;
 use std::str::FromStr;
-use zeroize::Zeroize;
+use zeroize::Zeroizing;
 
 /// Result of a transfer operation
 #[derive(Debug)]
@@ -72,7 +72,6 @@ impl TransferCommand {
             SecretPassword::new(prompt_password("Enter password for the default wallet: ")?)
         };
         let private_key = default_wallet.decrypt_private_key(&password)?;
-        let private_key_str = private_key.expose().clone(); // Get the private key string to use
 
         // The password is automatically zeroized when it goes out of scope
 
@@ -82,13 +81,12 @@ impl TransferCommand {
         // Get the network from config
         let config = ConfigManager::new()?.load()?;
 
-        // Create a new helper config with the private key
-        let private_key_copy = private_key_str.clone();
+        // Create a new helper config with the private key (using Zeroizing wrapper)
         let client_config = HelperConfig {
             network: config.default_network.get_config(),
             wallet: crate::utils::helper::WalletConfig {
                 current_wallet_address: None,
-                private_key: Some(private_key_copy.clone()),
+                private_key: Some(Zeroizing::new(private_key.expose().to_string())),
                 mnemonic: None,
             },
         };
@@ -199,8 +197,6 @@ impl TransferCommand {
 
         // Zeroize sensitive data before returning
         // private_key is automatically zeroized when it goes out of scope
-        let mut private_key_copy_for_zeroize = private_key_copy;
-        private_key_copy_for_zeroize.zeroize();
 
         Ok(TransferResult {
             tx_hash,
