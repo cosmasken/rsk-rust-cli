@@ -81,7 +81,6 @@ impl TransferCommand {
         let config = ConfigManager::new()?.load()?;
 
         // Create a new helper config with the private key (using Zeroizing wrapper)
-=======
         let client_config = HelperConfig {
             network: config.default_network.get_config(),
             wallet: crate::utils::helper::WalletConfig {
